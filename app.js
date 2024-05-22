@@ -3,14 +3,15 @@ require("express-async-errors");
 
 const app = express();
 
-require("dotenv").config(); // to load the .env file into the process.env object
+require("dotenv").config();
 const session = require("express-session");
 
+
+// MONGO SESSION
 const MongoDBStore = require("connect-mongodb-session")(session);
 const url = process.env.MONGO_URI;
 
 const store = new MongoDBStore({
-  // may throw an error, which won't be caught
   uri: url,
   collection: "mySessions",
 });
@@ -18,7 +19,7 @@ store.on("error", function (error) {
   console.log(error);
 });
 
-const sessionParms = {
+const sessionParams = {
   secret: process.env.SESSION_SECRET,
   resave: true,
   saveUninitialized: true,
@@ -27,18 +28,19 @@ const sessionParms = {
 };
 
 if (app.get("env") === "production") {
-  app.set("trust proxy", 1); // trust first proxy
-  sessionParms.cookie.secure = true; // serve secure cookies
+  app.set("trust proxy", 1);
+  sessionParams.cookie.secure = true; 
 }
 
-app.use(session(sessionParms));
+app.use(session(sessionParams));
 
+// FLASH MESSAGES
 app.use(require("connect-flash")());
 
 app.set("view engine", "ejs");
 app.use(require("body-parser").urlencoded({ extended: true }));
 
-// secret word handling
+// SECRET WORD HANDLING
 app.get("/secretWord", (req, res) => {
     if (!req.session.secretWord) {
       req.session.secretWord = "syzygy";
